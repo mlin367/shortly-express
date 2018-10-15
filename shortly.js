@@ -87,7 +87,28 @@ function(req, res) {
 // Write your authentication routes here
 /************************************************************/
 
+app.get('/login', (req, res) => {
+  res.status(200).send();
+})
 
+app.post('/login', (req, res) => {
+  let username = req.body.username;
+  let password = req.body.password;
+
+  db.knex('users')
+  .where({
+    username,
+    password
+  })
+  .select()
+  .then((data) => {
+    console.log(data)
+    res.send('dd');
+  })
+  .catch((error) => {
+    res.redirect('/login');
+  })
+})
 
 /************************************************************/
 // Handle the wildcard route last - if all other routes fail
