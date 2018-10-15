@@ -88,10 +88,41 @@ function(req, res) {
 /************************************************************/
 
 app.get('/login', (req, res) => {
-  res.status(200).send();
+//  res.status(200).send();
+  res.render('login');
 })
 
 app.post('/login', (req, res) => {
+  let username = req.body.username;
+  let password = req.body.password;
+  db.knex('users')
+  .where({
+    username,
+    password
+  })
+  .select()
+  .then((data) => {
+    if (data.length > 0) {
+      req.session.regenerate(() => {
+        req.session.user = username;
+        res.redirect('/');
+      })
+    } else {
+      res.redirect('/login');
+    }
+  })
+  .catch((error) => {
+    console.error(error);
+  })
+})
+
+app.get('/signup', (req, res) => {
+  //  res.status(200).send();
+    res.render('signup');
+  })
+  
+
+app.post('/signup', (req, res) => {
   let username = req.body.username;
   let password = req.body.password;
 
@@ -102,10 +133,23 @@ app.post('/login', (req, res) => {
   })
   .select()
   .then((data) => {
-    console.log(data)
-    res.send('dd');
+    if (data.length > 0) {
+      throw ('user already exists!')
+    } else {
+      new User({
+        username,
+        password
+      }).save()
+    }
+  }).then(() => {
+    console.log('sucess')
+    req.session.regenerate(() => {
+      req.session.user = username;
+      res.redirect('/');
+    })
   })
   .catch((error) => {
+    console.error(error);
     res.redirect('/login');
   })
 })
