@@ -1,5 +1,6 @@
 var expect = require('chai').expect;
 var request = require('request');
+var url = require("url");
 
 var app = require('../shortly.js');
 var db = require('../app/config');
@@ -174,8 +175,29 @@ describe('', function() {
           title: 'Funny pictures of animals, funny dog pictures',
           baseUrl: 'http://127.0.0.1:4568'
         });
-        link.save().then(function() {
-          done();
+        link.save()
+        
+        // .then(function() {
+        //   done();
+        // });
+
+        new User({
+          'username': 'Phillip',
+          'password': 'Phillip'
+        }).save().then(function() {
+          var options = {
+            'method': 'POST',
+            'followAllRedirects': true,
+            'uri': 'http://127.0.0.1:4568/login',
+            'json': {
+              'username': 'Phillip',
+              'password': 'Phillip'
+            }
+          };
+          // login via form and save session info
+          requestWithSession(options, function(error, res, body) {
+            done();
+          });
         });
       });
 
@@ -209,7 +231,7 @@ describe('', function() {
         });
       });
 
-      xit('Returns all of the links to display on the links page', function(done) {
+      it('Returns all of the links to display on the links page', function(done) {
         var options = {
           'method': 'GET',
           'uri': 'http://127.0.0.1:4568/links'
@@ -343,6 +365,49 @@ describe('', function() {
         done();
       });
     });
+
+    describe('Account Logout:', function() {
+      var requestWithSession = request.defaults({jar: true});
+
+      beforeEach(function(done) {
+        new User({
+          'username': 'Phillip',
+          'password': 'Phillip'
+        }).save().then(function() {
+          var options = {
+            'method': 'POST',
+            'followAllRedirects': true,
+            'uri': 'http://127.0.0.1:4568/login',
+            'json': {
+              'username': 'Phillip',
+              'password': 'Phillip'
+            }
+          };
+          // prove that we are logged in before executing other tests
+          requestWithSession(options, function(error, res, body) {
+            expect(res.req.path).to.equal('/');
+            done();
+          });
+        });
+      });
+  
+      it('Logs out a user after logging in', function(done) {
+        var options = {
+          'method': 'GET',
+          'uri': 'http://127.0.0.1:4568/logout',
+        };
+  
+        requestWithSession(options, function(error, res, body) {
+          expect(res.req.path).to.equal('/login');
+          done();
+        });
+
+      });
+
+
+
+    });
+
 
   }); // 'Account Login'
 
